@@ -1,0 +1,1395 @@
+<!DOCTYPE html>
+<html lang="de" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#F5F2EC" id="theme-color-meta">
+<title>Daily OS – Persönlicher Tagesbegleiter</title>
+<!--
+  Daily OS v3 – Persönlicher Tagesbegleiter
+  ==========================================
+  GitHub Pages: Diese HTML-Datei in dein Repository hochladen.
+  Settings -> GitHub Pages -> Zweig main -> / (root) aktivieren.
+  
+  KI-Features: Erfordern einen Anthropic API-Key.
+  Holen unter: https://console.anthropic.com
+  Eintragen im ⚙️ Symbol unten links in der Seitenleiste.
+  
+  HINWEIS: KI-Features funktionieren am besten lokal (Datei direkt im Browser öffnen).
+  Auf GitHub Pages können CORS-Einschränkungen die KI-Anfragen blockieren.
+-->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:ital,opsz,wght@0,9..144,300;0,9..144,400;0,9..144,500;1,9..144,300;1,9..144,400&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F5F2EC;--sur:#FFFFFF;--sur2:#F0EDE5;--sur3:#E6E0D4;
+  --brd:rgba(28,22,12,.09);--txt:#1C1A14;--txt2:#6B6450;--txt3:#A09678;
+  --acc:#C27D35;--accL:rgba(194,125,53,.08);--accB:rgba(194,125,53,.22);
+  --ok:#3A9B76;--okL:rgba(58,155,118,.08);--okB:rgba(58,155,118,.22);
+  --shd:0 2px 14px rgba(0,0,0,.07);
+  --r:16px;--rsm:10px;--sidebar:244px;--navh:70px;
+}
+[data-theme="dark"]{
+  --bg:#0B0B0F;--sur:#16161E;--sur2:#1E1E28;--sur3:#26263A;
+  --brd:rgba(255,255,255,.07);--txt:#EDE9DF;--txt2:#8E8AA0;--txt3:#5A5870;
+  --acc:#D4924A;--accL:rgba(212,146,74,.10);--accB:rgba(212,146,74,.22);
+  --ok:#4AAE88;--okL:rgba(74,174,136,.10);--okB:rgba(74,174,136,.22);
+  --shd:0 2px 14px rgba(0,0,0,.32);
+}
+*,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+html{font-size:16px;-webkit-text-size-adjust:100%}
+body{font-family:'Plus Jakarta Sans',sans-serif;background:var(--bg);color:var(--txt);min-height:100svh;line-height:1.55;transition:background .2s,color .2s;-webkit-font-smoothing:antialiased}
+button,input,textarea,select{font-family:inherit}
+::-webkit-scrollbar{width:5px;height:5px}
+::-webkit-scrollbar-thumb{background:var(--sur3);border-radius:10px}
+
+/* LAYOUT */
+#app{display:flex;min-height:100svh}
+.sidebar{width:var(--sidebar);position:fixed;top:0;left:0;height:100vh;background:var(--sur);border-right:1px solid var(--brd);display:flex;flex-direction:column;padding:28px 14px 20px;z-index:200;transition:background .2s}
+.sidebar-logo{display:flex;align-items:center;gap:12px;padding:2px 8px;margin-bottom:32px}
+.logo-mark{width:38px;height:38px;border-radius:11px;background:linear-gradient(135deg,var(--acc),#E8A548);display:flex;align-items:center;justify-content:center;font-size:18px;flex-shrink:0;box-shadow:0 3px 12px var(--accL)}
+.logo-name{font-family:'Fraunces',serif;font-size:18px;font-weight:600;letter-spacing:-.3px;color:var(--txt);line-height:1.1}
+.logo-tag{font-size:11px;color:var(--txt3);font-weight:400;margin-top:2px}
+.nav-menu{flex:1;display:flex;flex-direction:column;gap:3px}
+.nav-btn{display:flex;align-items:center;gap:11px;padding:10px 12px;border-radius:var(--rsm);border:none;background:none;cursor:pointer;font-size:14px;font-weight:500;color:var(--txt2);width:100%;text-align:left;transition:all .18s}
+.nav-btn:hover{background:var(--sur2)}
+.nav-btn.active{background:var(--accL);color:var(--acc)}
+.nav-icon{font-size:17px;width:22px;text-align:center;flex-shrink:0}
+.sidebar-footer{padding-top:16px;border-top:1px solid var(--brd);display:flex;align-items:center;justify-content:space-between}
+.sidebar-date{font-size:11px;color:var(--txt3)}
+.icon-btn{width:32px;height:32px;border-radius:9px;border:1px solid var(--brd);background:var(--sur2);display:flex;align-items:center;justify-content:center;cursor:pointer;font-size:14px;transition:all .18s}
+.icon-btn:hover{background:var(--sur3)}
+.main{flex:1;margin-left:var(--sidebar);padding:36px 40px 40px;max-width:860px}
+.content-wrap{animation:slideUp .3s ease}
+.bottom-nav{display:none;position:fixed;bottom:0;left:0;right:0;height:var(--navh);background:var(--sur);border-top:1px solid var(--brd);z-index:200;justify-content:space-around;align-items:center;padding:0 4px;padding-bottom:env(safe-area-inset-bottom,4px)}
+.bn-item{display:flex;flex-direction:column;align-items:center;gap:3px;padding:6px 8px;border-radius:var(--rsm);border:none;background:none;cursor:pointer;font-size:9.5px;font-weight:600;flex:1;color:var(--txt3);transition:color .18s}
+.bn-item.active{color:var(--acc)}
+.bn-em{font-size:20px;line-height:1}
+
+/* SETTINGS OVERLAY */
+.settings-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:500;display:flex;align-items:center;justify-content:center;padding:20px}
+.settings-box{background:var(--sur);border-radius:var(--r);padding:28px;max-width:460px;width:100%;box-shadow:0 8px 40px rgba(0,0,0,.2);animation:slideUp .25s ease}
+.settings-title{font-family:'Fraunces',serif;font-size:22px;font-weight:500;color:var(--txt);margin-bottom:6px}
+.settings-sub{font-size:13px;color:var(--txt2);margin-bottom:20px;line-height:1.5}
+
+/* CARDS */
+.card{background:var(--sur);border:1px solid var(--brd);border-radius:var(--r);padding:20px;box-shadow:var(--shd);transition:background .2s,border-color .2s}
+.card+.card{margin-top:14px}
+.card-lg{padding:24px 24px}
+.card-accent{background:var(--accL);border-color:var(--accB)}
+.card-ok{background:var(--okL);border-color:var(--okB)}
+.card-dim{background:var(--sur2)}
+
+/* TYPOGRAPHY */
+.serif{font-family:'Fraunces',serif}
+.page-title{font-family:'Fraunces',serif;font-size:clamp(24px,3.5vw,30px);font-weight:500;letter-spacing:-.5px;line-height:1.2;color:var(--txt)}
+.page-sub{font-size:14px;color:var(--txt2);margin-top:4px}
+.lbl{font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--txt3)}
+
+/* BUTTONS */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:10px 18px;border-radius:var(--rsm);border:none;cursor:pointer;font-size:14px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s;white-space:nowrap}
+.btn-primary{background:var(--acc);color:#fff}
+.btn-primary:hover{filter:brightness(1.08)}
+.btn-success{background:var(--ok);color:#fff}
+.btn-secondary{background:var(--sur2);color:var(--txt);border:1px solid var(--brd)}
+.btn-secondary:hover{background:var(--sur3)}
+.btn-ghost{background:none;color:var(--txt2)}
+.btn-ghost:hover{color:var(--acc);background:var(--accL)}
+.btn-danger{background:rgba(208,80,80,.1);color:#D05050}
+.btn-ai{background:linear-gradient(135deg,var(--acc),#E8A548);color:#fff;box-shadow:0 3px 12px rgba(194,125,53,.28)}
+.btn-sm{padding:7px 13px;font-size:13px}
+.btn-xs{padding:5px 10px;font-size:11px}
+
+/* INPUTS */
+.inp{width:100%;background:var(--sur2);border:1.5px solid var(--brd);border-radius:var(--rsm);padding:11px 14px;font-size:14px;color:var(--txt);font-family:'Plus Jakarta Sans',sans-serif;outline:none;transition:border-color .18s}
+.inp:focus{border-color:var(--acc);background:var(--sur)}
+.inp::placeholder{color:var(--txt3)}
+.ta{resize:vertical;min-height:80px;line-height:1.6}
+.sel{appearance:none;cursor:pointer}
+
+/* PROGRESS */
+.bar-track{height:7px;background:var(--sur2);border-radius:100px;overflow:hidden}
+.bar-fill{height:100%;border-radius:100px;background:linear-gradient(90deg,var(--acc),#E8A548);transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bar-fill.ok{background:linear-gradient(90deg,var(--ok),#56C898)}
+
+/* TABS */
+.tabs{display:flex;gap:4px;background:var(--sur2);padding:4px;border-radius:var(--rsm);margin-bottom:16px;overflow-x:auto;scrollbar-width:none}
+.tabs::-webkit-scrollbar{display:none}
+.tab-btn{flex-shrink:0;padding:8px 12px;border-radius:7px;border:none;background:none;cursor:pointer;font-size:13px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;color:var(--txt2);transition:all .18s}
+.tab-btn.active{background:var(--sur);color:var(--acc);box-shadow:var(--shd)}
+
+/* CHECK CIRCLE */
+.cc{width:22px;height:22px;border-radius:50%;border:2px solid var(--brd);background:var(--sur);display:flex;align-items:center;justify-content:center;cursor:pointer;flex-shrink:0;transition:all .18s}
+.cc:hover{border-color:var(--acc)}
+.cc.on{background:var(--ok);border-color:var(--ok)}
+.cc.on::after{content:'';width:5px;height:9px;border:2px solid #fff;border-top:none;border-left:none;transform:rotate(44deg) translateY(-1px);display:block}
+
+/* MOOD */
+.mood-row{display:flex;gap:8px;margin-top:12px}
+.mood-btn{flex:1;display:flex;flex-direction:column;align-items:center;gap:6px;padding:11px 4px;border-radius:var(--rsm);border:2px solid var(--brd);background:var(--sur2);cursor:pointer;transition:all .18s}
+.mood-btn:hover{border-color:var(--accB);transform:translateY(-2px)}
+.mood-btn.sel{border-color:var(--acc);background:var(--accL)}
+.mood-em{font-size:22px;line-height:1}
+.mood-lb{font-size:10px;font-weight:600;color:var(--txt2)}
+.mood-btn.sel .mood-lb{color:var(--acc)}
+
+/* MARBLES */
+.marble-wrap{text-align:center;padding:16px 8px}
+.marble-count-big{font-family:'Fraunces',serif;font-size:48px;font-weight:500;letter-spacing:-1px;color:var(--acc);line-height:1;margin:8px 0 4px}
+.marble-sub{font-size:12px;color:var(--txt2);margin-bottom:16px}
+.marbles-row{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;min-height:28px;margin-bottom:18px}
+.marble{width:19px;height:19px;border-radius:50%;background:radial-gradient(circle at 35% 35%,#F0BA6A,#C27D35);box-shadow:0 2px 6px rgba(194,125,53,.45);flex-shrink:0}
+.marble.new{animation:marblePop .45s cubic-bezier(.34,1.56,.64,1)}
+.marble-btn{background:linear-gradient(135deg,var(--acc),#E8A548);color:#fff;border:none;border-radius:14px;padding:13px 28px;font-size:14px;font-weight:700;cursor:pointer;display:inline-flex;align-items:center;gap:10px;box-shadow:0 4px 16px rgba(194,125,53,.35);font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s}
+.marble-btn:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(194,125,53,.4)}
+.marble-hint{font-size:11px;color:var(--txt3);margin-top:10px}
+.marble-panel{background:var(--sur);border:1.5px solid var(--accB);border-radius:var(--rsm);padding:16px;margin-top:14px;animation:slideUp .25s ease}
+.marble-panel-q{font-size:14px;font-weight:600;color:var(--txt);margin-bottom:10px}
+
+/* ACTIVITY LOG */
+.log-entry{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--brd)}
+.log-entry:last-child{border-bottom:none}
+.log-ico{font-size:18px;flex-shrink:0;margin-top:1px;line-height:1}
+.log-main{flex:1;min-width:0}
+.log-text{font-size:14px;font-weight:500;color:var(--txt);word-break:break-word}
+.log-meta{font-size:11px;color:var(--txt3);margin-top:2px}
+
+/* ROUTINE ITEMS */
+.rit-item{display:flex;align-items:center;gap:11px;padding:10px 13px;border-radius:var(--rsm);cursor:pointer;transition:background .18s}
+.rit-item:hover{background:var(--sur2)}
+.rit-item.done{opacity:.5}
+.rit-item.done .rit-text{text-decoration:line-through;color:var(--txt3)}
+.rit-text{flex:1;font-size:14px;color:var(--txt)}
+.time-tag{font-size:10px;font-weight:700;padding:2px 8px;border-radius:10px;flex-shrink:0}
+.rit-status{font-size:11px;font-weight:600;padding:2px 8px;border-radius:20px}
+
+/* BELIEF ITEMS */
+.belief-item{display:flex;align-items:center;gap:11px;padding:12px 14px;border-radius:var(--rsm);border:1px solid var(--brd);background:var(--sur2);margin-bottom:8px}
+.belief-text{flex:1;font-size:14px;font-style:italic;color:var(--txt);line-height:1.55}
+.belief-del{background:none;border:none;cursor:pointer;padding:4px 6px;border-radius:6px;color:var(--txt3);font-size:13px;transition:all .18s}
+.belief-del:hover{color:#D05050;background:rgba(208,80,80,.08)}
+
+/* STREAK */
+.streak-row{display:flex;gap:8px;margin-top:10px}
+.streak-day{display:flex;flex-direction:column;align-items:center;gap:5px;flex:1}
+.streak-dot{width:10px;height:10px;border-radius:50%;background:var(--sur3)}
+.streak-dot.done{background:var(--ok)}
+.streak-dot.today{background:var(--acc);box-shadow:0 0 0 3px var(--accL)}
+.streak-lbl{font-size:10px;font-weight:500;color:var(--txt3)}
+.streak-lbl.today{font-weight:700;color:var(--acc)}
+
+/* REFLECTION */
+.ritual-card{border-radius:var(--r);padding:22px;margin-bottom:14px;box-shadow:var(--shd);transition:border-color .3s}
+.ritual-card.morning{background:var(--sur);border:2px solid var(--brd)}
+.ritual-card.morning.active{border-color:var(--acc)}
+.ritual-card.evening{background:var(--sur);border:2px solid var(--brd)}
+.ritual-card.evening.active{border-color:var(--acc)}
+.ritual-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.ritual-info{display:flex;align-items:center;gap:12px}
+.ritual-em{font-size:26px;line-height:1}
+.ritual-title{font-size:15px;font-weight:700;color:var(--txt)}
+.ritual-time{font-size:12px;color:var(--txt3);margin-top:2px}
+.now-badge{font-size:11px;font-weight:700;color:var(--acc);background:var(--accL);padding:4px 10px;border-radius:20px;animation:pulse 2s ease infinite}
+.done-badge{font-size:11px;font-weight:700;color:var(--ok);background:var(--okL);padding:4px 10px;border-radius:20px}
+.refl-label{display:flex;align-items:center;gap:8px;font-size:12px;font-weight:600;color:var(--acc);margin-bottom:8px}
+.refl-em{font-size:16px}
+.log-preview{background:var(--sur2);border-radius:var(--rsm);padding:10px 14px;margin-bottom:14px}
+
+/* AI BOX */
+.ai-box{background:var(--accL);border:1px solid var(--accB);border-radius:12px;padding:16px 18px;margin-top:12px;animation:slideUp .3s ease}
+.ai-box-title{display:flex;align-items:center;gap:6px;font-size:10.5px;font-weight:700;letter-spacing:.9px;text-transform:uppercase;color:var(--acc);margin-bottom:10px}
+.ai-box-text{font-size:14px;line-height:1.75;color:var(--txt);font-style:italic;font-family:'Fraunces',serif;font-weight:400;margin:0}
+.ai-error{font-size:13px;color:#D05050;margin:0}
+.spinner{display:inline-block;width:14px;height:14px;border-radius:50%;border:2px solid currentColor;border-top-color:transparent;animation:spin .7s linear infinite;vertical-align:middle}
+.loading-row{display:flex;align-items:center;gap:10px;color:var(--txt2);font-size:13px}
+
+/* GRID */
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+/* UTILS */
+.flex-b{display:flex;align-items:center;justify-content:space-between}
+.flex-c{display:flex;align-items:center}
+.gap8{gap:8px}.gap12{gap:12px}.gap16{gap:16px}
+.mt8{margin-top:8px}.mt12{margin-top:12px}.mt14{margin-top:14px}.mt16{margin-top:16px}
+.mb8{margin-bottom:8px}.mb12{margin-bottom:12px}.mb14{margin-bottom:14px}
+.text-c{text-align:center}
+.c-acc{color:var(--acc)}.c-ok{color:var(--ok)}.c-muted{color:var(--txt2)}.c-faint{color:var(--txt3)}
+.fs13{font-size:13px}.fs12{font-size:12px}.fs11{font-size:11px}
+.fw6{font-weight:600}.fw5{font-weight:500}
+.divider{height:1px;background:var(--brd);margin:16px 0}
+.badge{display:inline-flex;padding:3px 10px;border-radius:20px;font-size:12px;font-weight:600}
+.badge-acc{background:var(--accL);color:var(--acc)}
+.badge-ok{background:var(--okL);color:var(--ok)}
+
+/* ANIMATIONS */
+@keyframes slideUp{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:translateY(0)}}
+@keyframes spin{to{transform:rotate(360deg)}}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+@keyframes marblePop{0%{transform:scale(0);opacity:0}60%{transform:scale(1.35)}100%{transform:scale(1);opacity:1}}
+@keyframes pop{0%{transform:scale(.5);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}
+
+/* RESPONSIVE */
+@media(max-width:768px){
+  .sidebar{display:none}
+  .bottom-nav{display:flex}
+  .main{margin-left:0;padding:20px 16px calc(var(--navh) + 24px);max-width:100%}
+  .g2{grid-template-columns:1fr}
+  .mood-lb{display:none}
+  #mobile-theme{display:flex!important}
+}
+@media(min-width:769px){
+  #mobile-theme{display:none!important}
+}
+</style>
+</head>
+<body>
+<div id="app">
+  <!-- SIDEBAR -->
+  <nav class="sidebar">
+    <div class="sidebar-logo">
+      <div class="logo-mark">⚡</div>
+      <div>
+        <div class="logo-name">Daily OS</div>
+        <div class="logo-tag">Persönlicher Tagesbegleiter</div>
+      </div>
+    </div>
+    <div class="nav-menu" id="sidebar-nav"></div>
+    <div class="sidebar-footer">
+      <div class="sidebar-date" id="sidebar-date"></div>
+      <div style="display:flex;gap:6px">
+        <button class="icon-btn" onclick="openSettings()" title="Einstellungen (API-Key)">⚙️</button>
+        <button class="icon-btn" id="theme-btn" onclick="toggleTheme()">🌙</button>
+      </div>
+    </div>
+  </nav>
+
+  <!-- MAIN -->
+  <main class="main">
+    <div style="display:flex;align-items:center;justify-content:flex-end;margin-bottom:-8px">
+      <button class="icon-btn" id="mobile-theme" onclick="toggleTheme()" style="display:none">🌙</button>
+    </div>
+    <div id="content"></div>
+  </main>
+
+  <!-- BOTTOM NAV -->
+  <nav class="bottom-nav" id="bottom-nav"></nav>
+
+  <!-- SETTINGS OVERLAY -->
+  <div class="settings-overlay" id="settings-overlay" style="display:none" onclick="if(event.target===this)closeSettings()">
+    <div class="settings-box">
+      <div class="settings-title serif">Einstellungen</div>
+      <div class="settings-sub">Für KI-Features benötigst du einen Anthropic API-Key.<br>Hole ihn kostenlos unter <a href="https://console.anthropic.com" target="_blank" style="color:var(--acc)">console.anthropic.com</a>.<br><strong>Hinweis:</strong> Auf GitHub Pages können KI-Features wegen CORS-Einschränkungen nicht funktionieren. Öffne die HTML-Datei lokal für volle Funktionalität.</div>
+      <div class="lbl mb8">Anthropic API-Key</div>
+      <input type="password" class="inp mb12" id="api-key-inp" placeholder="sk-ant-api03-..." style="font-family:monospace">
+      <div class="flex-c gap8" style="flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="saveApiKey()">Speichern</button>
+        <button class="btn btn-secondary btn-sm" onclick="testApiKey()">Verbindung testen</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeSettings()">Schließen</button>
+      </div>
+      <div id="api-test-result" class="mt8 fs12"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ═══════════════════════════════════════════
+// CONSTANTS
+// ═══════════════════════════════════════════
+const MOODS = [
+  {v:1,em:"😔",lb:"Müde"},
+  {v:2,em:"😐",lb:"Okay"},
+  {v:3,em:"🙂",lb:"Gut"},
+  {v:4,em:"😊",lb:"Stark"},
+  {v:5,em:"🚀",lb:"Power"},
+]
+const CATS = {
+  selfworth:{lbl:"Selbstwert",col:"#7C4DBC",bg:"rgba(124,77,188,.11)"},
+  calm:{lbl:"Ruhe",col:"#2E80C6",bg:"rgba(46,128,198,.11)"},
+  trust:{lbl:"Vertrauen",col:"#2D9E72",bg:"rgba(45,158,114,.11)"},
+  success:{lbl:"Erfolg",col:"#C27D35",bg:"rgba(194,125,53,.11)"},
+  health:{lbl:"Gesundheit",col:"#D05050",bg:"rgba(208,80,80,.11)"},
+}
+const RCATS = {
+  morning:{lbl:"Morgen",ico:"🌅"},
+  health:{lbl:"Gesundheit",ico:"💊"},
+  movement:{lbl:"Bewegung",ico:"🏃"},
+  work:{lbl:"Arbeit & Lernen",ico:"💼"},
+  evening:{lbl:"Abend",ico:"🌙"},
+}
+const TIME_TAGS = {
+  morgens:{lbl:"Morgens",col:"#C27D35",bg:"rgba(194,125,53,.1)"},
+  mittags:{lbl:"Mittags",col:"#2E80C6",bg:"rgba(46,128,198,.1)"},
+  abends:{lbl:"Abends",col:"#7C4DBC",bg:"rgba(124,77,188,.1)"},
+  flexibel:{lbl:"Flexibel",col:"#7A7060",bg:"rgba(122,112,96,.1)"},
+}
+const TT_KEYS = ["morgens","mittags","abends","flexibel"]
+const NAV = [
+  {id:"dashboard",lbl:"Start",em:"⚡"},
+  {id:"today",lbl:"Heute",em:"📋"},
+  {id:"routines",lbl:"Routinen",em:"✓"},
+  {id:"beliefs",lbl:"Sätze",em:"💬"},
+  {id:"reflection",lbl:"Ritual",em:"🌙"},
+]
+const DEF_BELIEFS = {
+  selfworth:["Ich bin genug, genau so wie ich bin.","Meine Erfahrungen haben echten, unersetzlichen Wert.","Ich verdiene Gutes in meinem Leben.","Ich bin stark, mutig und liebevoll.","Mein Beitrag macht einen Unterschied."],
+  calm:["Ich darf Pausen machen – das ist Stärke, keine Schwäche.","Ich bin ruhig, zentriert und bei mir.","Ich lasse los, was ich nicht kontrollieren kann.","Ruhe ist meine Basis für alles Weitere."],
+  trust:["Ich vertraue mir selbst und meinem Urteil.","Ich finde immer einen Weg vorwärts.","Ich bin auf dem richtigen Weg, auch wenn ich ihn noch nicht ganz sehe.","Veränderung bringt Wachstum und neue Möglichkeiten."],
+  success:["Fortschritt ist wichtiger als Perfektion.","Ich nehme jeden Tag einen konkreten Schritt vorwärts.","Ich handle, also verändere ich mein Leben.","Jede Handlung zählt, auch die kleinen."],
+  health:["Bewegung gibt mir Energie und Klarheit.","Ich pflege meinen Körper mit Freude und Dankbarkeit.","Gesundheit ist meine Basis für alles andere.","Jeden Tag ein kleines bisschen besser – das reicht."],
+}
+
+// ═══════════════════════════════════════════
+// DEFAULT ROUTINES (editable, ID-based)
+// ═══════════════════════════════════════════
+function makeDefRoutines(){
+  const seed={
+    morning:[["Aufwachen ohne Snooze","morgens"],["Wasser trinken (500 ml)","morgens"],["Stretching / Mobilität (5 Min)","morgens"],["Dusche & Körperpflege","morgens"],["Bewusstes Frühstück","morgens"],["Tagesplan kurz durchgehen","morgens"]],
+    health:[["Supplemente eingenommen","morgens"],["Wasser-Ziel: 2,5 L täglich","flexibel"],["Gesunde Mahlzeiten","flexibel"],["8.000+ Schritte","flexibel"]],
+    movement:[["Freestyle Dancing (20–25 Min)","flexibel"],["HR 120–150 bpm gehalten","flexibel"],["Schwimmtraining (wenn geplant)","flexibel"],["Abend-Spaziergang","abends"]],
+    work:[["Top-Priorität erledigt","mittags"],["Deep Work (90 Min fokussiert)","mittags"],["E-Mails / Nachrichten gecheckt","mittags"],["Etwas Neues gelernt (IT / Sport)","flexibel"]],
+    evening:[["Bildschirm aus (1 h vor Schlaf)","abends"],["Morgen vorbereitet","abends"],["Tagesreflexion gemacht","abends"],["Dankbarkeit notiert","abends"]],
+  }
+  const r={}
+  Object.entries(seed).forEach(([cat,items])=>{
+    r[cat]=items.map(([text,timeTag],i)=>({id:`${cat}_${i}`,text,timeTag}))
+  })
+  return r
+}
+
+// ═══════════════════════════════════════════
+// STATE
+// ═══════════════════════════════════════════
+let S = {
+  version:3, theme:"light", apiKey:"",
+  dateKey:null, section:"dashboard",
+  // Daily
+  mood:null, win:"",
+  marbles:[], marbleOpen:false, marbleDraft:"",
+  actLog:[],
+  priorities:[
+    {t:"Freestyle Dancing – 20 Min. absolvieren",done:false},
+    {t:"Deep Work Block abschließen",done:false},
+    {t:"Abendroutine vollständig durchführen",done:false},
+  ],
+  // Routines
+  routines:null, // initialized on load
+  rDone:{morning:[],health:[],movement:[],work:[],evening:[]},
+  rTab:"morning", editMode:false,
+  newRText:"", newRTime:"flexibel",
+  // Beliefs
+  beliefs:null, bTab:"selfworth", newBeliefTxt:"",
+  featBelief:"", featBeliefCat:"success",
+  // Reflection
+  morRefl:{intention:"",gratitude:"",energy:""},
+  eveRefl:{proud:"",learned:"",gratitude:"",tomorrow:""},
+  // AI (not persisted)
+  aiAffirm:{text:"",loading:false,error:""},
+  aiCoach:{text:"",loading:false,error:""},
+  aiWeek:{text:"",loading:false,error:""},
+  aiBelief:{text:"",loading:false,error:"",cat:"selfworth"},
+  // Week history
+  weekHistory:[0,0,0,0,0,0,0],
+  // UI
+  showSettings:false,
+  newActText:"",
+}
+
+// ═══════════════════════════════════════════
+// STORAGE
+// ═══════════════════════════════════════════
+const STORE_KEY = "dailyos_v3"
+
+function save(){
+  const toSave = {...S}
+  // Don't persist loading states
+  toSave.aiAffirm = {text:S.aiAffirm.text,loading:false,error:""}
+  toSave.aiCoach = {text:S.aiCoach.text,loading:false,error:""}
+  toSave.aiWeek = {text:S.aiWeek.text,loading:false,error:""}
+  toSave.aiBelief = {text:S.aiBelief.text,loading:false,error:"",cat:S.aiBelief.cat}
+  toSave.marbleOpen = false
+  toSave.marbleDraft = ""
+  toSave.editMode = false
+  toSave.showSettings = false
+  try{ localStorage.setItem(STORE_KEY, JSON.stringify(toSave)) }catch(e){}
+}
+
+function load(){
+  try{
+    const raw = localStorage.getItem(STORE_KEY)
+    if(!raw){ initFresh(); return }
+    const p = JSON.parse(raw)
+    const today = todayKey()
+    // Daily reset
+    if(p.dateKey !== today){
+      // Save yesterday's routine completion to week history
+      if(p.routines && p.rDone){
+        let tot=0,dn=0
+        Object.entries(p.routines).forEach(([k,items])=>{
+          tot+=items.length; dn+=(p.rDone[k]||[]).length
+        })
+        const pct = tot>0?Math.round(dn/tot*100):0
+        const wd = new Date().getDay()
+        const yi = wd===0?6:wd-2  // yesterday's index
+        if(p.weekHistory && yi>=0) p.weekHistory[yi]=pct
+      }
+      // Reset daily fields
+      p.mood=null; p.win=""
+      p.marbles=[]; p.marbleOpen=false; p.marbleDraft=""
+      p.actLog=[]
+      if(p.priorities) p.priorities.forEach(pr=>{pr.done=false})
+      if(p.rDone) Object.keys(p.rDone).forEach(k=>{p.rDone[k]=[]})
+      p.morRefl={intention:"",gratitude:"",energy:""}
+      p.eveRefl={proud:"",learned:"",gratitude:"",tomorrow:""}
+      p.dateKey=today
+      p.aiCoach={text:"",loading:false,error:""}
+      p.aiWeek={text:"",loading:false,error:""}
+    }
+    // Ensure routines and beliefs exist
+    if(!p.routines) p.routines = makeDefRoutines()
+    if(!p.beliefs) p.beliefs = JSON.parse(JSON.stringify(DEF_BELIEFS))
+    if(!p.featBelief) p.featBelief = DEF_BELIEFS.success[0]
+    if(!p.weekHistory) p.weekHistory = [0,0,0,0,0,0,0]
+    S = {...S, ...p}
+  }catch(e){ initFresh() }
+}
+
+function initFresh(){
+  S.routines = makeDefRoutines()
+  S.beliefs = JSON.parse(JSON.stringify(DEF_BELIEFS))
+  S.featBelief = DEF_BELIEFS.success[0]
+  S.dateKey = todayKey()
+}
+
+function todayKey(){
+  const d=new Date()
+  return `${d.getFullYear()}-${d.getMonth()}-${d.getDate()}`
+}
+
+// ═══════════════════════════════════════════
+// HELPERS
+// ═══════════════════════════════════════════
+function esc(s){ return String(s||'').replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;') }
+function getTime(){ return new Date().toLocaleTimeString("de-DE",{hour:"2-digit",minute:"2-digit"}) }
+function getDateLong(){ return new Date().toLocaleDateString("de-DE",{weekday:"long",year:"numeric",month:"long",day:"numeric"}) }
+function getDateShort(){ return new Date().toLocaleDateString("de-DE",{day:"2-digit",month:"short",year:"numeric"}) }
+function getHour(){ return new Date().getHours() }
+
+function routinePct(){
+  let tot=0,dn=0
+  if(!S.routines) return 0
+  Object.entries(S.routines).forEach(([k,items])=>{
+    tot+=items.length; dn+=(S.rDone[k]||[]).length
+  })
+  return tot>0?Math.round(dn/tot*100):0
+}
+
+function moodObj(){ return MOODS.find(m=>m.v===S.mood) }
+
+function getTimeGuide(){
+  const h=getHour()
+  if(h>=5&&h<9)   return{label:"Morgenritual",desc:"Starte bewusst in den Tag",em:"🌅",nav:"reflection"}
+  if(h>=9&&h<12)  return{label:"Hochphase",desc:"Fokuszeit & Top-Prioritäten",em:"⚡",nav:"routines"}
+  if(h>=12&&h<14) return{label:"Mittagspause",desc:"Kurz durchatmen & auffüllen",em:"🌤️",nav:"today"}
+  if(h>=14&&h<17) return{label:"Nachmittag",desc:"Routinen & Aufgaben",em:"📋",nav:"routines"}
+  if(h>=17&&h<20) return{label:"Bewegungszeit",desc:"Energie raus, Murmel verdienen",em:"🏃",nav:"routines"}
+  if(h>=20&&h<22) return{label:"Abendritual",desc:"Reflektieren & Loslassen",em:"🌙",nav:"reflection"}
+  return{label:"Schlafvorbereitung",desc:"Morgen wird ein guter Tag",em:"😴",nav:"reflection"}
+}
+
+// ═══════════════════════════════════════════
+// THEME
+// ═══════════════════════════════════════════
+function toggleTheme(){
+  S.theme = S.theme==="light"?"dark":"light"
+  applyTheme(); save()
+}
+function applyTheme(){
+  document.documentElement.setAttribute("data-theme",S.theme)
+  const icon = S.theme==="dark"?"☀️":"🌙"
+  document.querySelectorAll("#theme-btn,#mobile-theme").forEach(b=>b.textContent=icon)
+  const mc = document.getElementById("theme-color-meta")
+  if(mc) mc.content = S.theme==="dark"?"#0B0B0F":"#F5F2EC"
+}
+
+// ═══════════════════════════════════════════
+// NAVIGATION
+// ═══════════════════════════════════════════
+function navigate(id){
+  S.section=id; S.editMode=false
+  updateNav()
+  rerender()
+  window.scrollTo(0,0)
+}
+function updateNav(){
+  document.querySelectorAll("[data-nav]").forEach(b=>{
+    b.classList.toggle("active",b.dataset.nav===S.section)
+  })
+}
+function buildNav(){
+  const sn = document.getElementById("sidebar-nav")
+  if(sn) sn.innerHTML = NAV.map(n=>`
+    <button class="nav-btn${S.section===n.id?" active":""}" data-nav="${n.id}" onclick="navigate('${n.id}')">
+      <span class="nav-icon">${n.em}</span>${n.lbl}
+    </button>`).join("")
+  const bn = document.getElementById("bottom-nav")
+  if(bn) bn.innerHTML = NAV.map(n=>`
+    <button class="bn-item${S.section===n.id?" active":""}" data-nav="${n.id}" onclick="navigate('${n.id}')">
+      <span class="bn-em">${n.em}</span>${n.lbl}
+    </button>`).join("")
+  const sd = document.getElementById("sidebar-date")
+  if(sd) sd.textContent = getDateShort()
+}
+
+// ═══════════════════════════════════════════
+// RENDER
+// ═══════════════════════════════════════════
+function rerender(){
+  const content = document.getElementById("content")
+  if(!content) return
+  const y = window.scrollY
+  let html=""
+  if(S.section==="dashboard")  html=renderDashboard()
+  else if(S.section==="today") html=renderToday()
+  else if(S.section==="routines") html=renderRoutines()
+  else if(S.section==="beliefs")  html=renderBeliefs()
+  else if(S.section==="reflection") html=renderReflection()
+  content.innerHTML = `<div class="content-wrap">${html}</div>`
+  setTimeout(()=>window.scrollTo(0,y),10)
+  // Focus marble input if open
+  if(S.marbleOpen){
+    const inp=document.getElementById("marble-inp")
+    if(inp){inp.focus();inp.value=S.marbleDraft||""}
+  }
+}
+
+// ═══════════════════════════════════════════
+// MARBLE FUNCTIONS
+// ═══════════════════════════════════════════
+function openMarble(){
+  S.marbleOpen=true; S.marbleDraft=""
+  rerender()
+}
+function closeMarble(){
+  S.marbleOpen=false; S.marbleDraft=""
+  rerender()
+}
+function confirmMarble(withDesc){
+  const inp=document.getElementById("marble-inp")
+  const desc=withDesc&&inp?inp.value.trim():""
+  const m={id:Date.now(),at:getTime(),desc}
+  S.marbles.push(m)
+  S.marbleOpen=false; S.marbleDraft=""
+  addToLog({
+    text:desc?`Murmel-Moment: ${desc}`:"Murmel-Moment: Selbstliebe vollbracht",
+    ico:"🤍",cat:"Selbstliebe",type:"marble"
+  })
+  save(); rerender()
+}
+function saveMarbleDraft(){
+  const inp=document.getElementById("marble-inp")
+  if(inp) S.marbleDraft=inp.value
+}
+
+function renderMarbles(){
+  const count=S.marbles.length
+  const show=Math.min(count,20)
+  let circlesHtml=""
+  for(let i=0;i<show;i++){
+    circlesHtml+=`<div class="marble${i===show-1&&count>0?" new":""}"></div>`
+  }
+  if(count>20) circlesHtml+=`<span class="c-faint fs12" style="align-self:center">+${count-20}</span>`
+  const panelHtml=S.marbleOpen?`
+    <div class="marble-panel">
+      <div class="marble-panel-q">Was war dein Moment der Selbstliebe?</div>
+      <input type="text" id="marble-inp" class="inp mb12"
+        placeholder="z.B. 5 Min. Pause gemacht, geatmet, spaziert, mich wertgeschätzt…"
+        oninput="S.marbleDraft=this.value">
+      <div class="flex-c gap8" style="flex-wrap:wrap">
+        <button class="btn btn-primary btn-sm" onclick="confirmMarble(true)">Hinzufügen ✓</button>
+        <button class="btn btn-secondary btn-sm" onclick="confirmMarble(false)">Nur zählen →</button>
+        <button class="btn btn-ghost btn-sm" onclick="closeMarble()">Abbrechen</button>
+      </div>
+    </div>`:"";
+  return `
+    <div class="card">
+      <div class="marble-wrap">
+        <div class="lbl">Murmel-System – Selbstliebe</div>
+        <div class="marble-count-big">${count}</div>
+        <div class="marble-sub">${count===0?"Noch keine Momente heute":`${count} Moment${count!==1?"e":""} der Selbstliebe heute`}</div>
+        <div class="marbles-row" style="display:flex">${circlesHtml}</div>
+        <button class="marble-btn" onclick="openMarble()">🤍 Murmel-Moment</button>
+        <div class="marble-hint">Linke Tasche → Rechte Tasche</div>
+      </div>
+      ${panelHtml}
+    </div>`
+}
+
+// ═══════════════════════════════════════════
+// ACTIVITY LOG
+// ═══════════════════════════════════════════
+function addToLog(entry){
+  S.actLog.unshift({id:Date.now(),at:getTime(),...entry})
+  save()
+}
+function addCustomActivity(){
+  const v=(document.getElementById("new-act-inp")||{value:S.newActText}).value.trim()
+  if(!v) return
+  addToLog({text:v,ico:"✏️",cat:"Eigene Aktivität",type:"custom"})
+  S.newActText=""
+  rerender()
+}
+
+// ═══════════════════════════════════════════
+// ROUTINE FUNCTIONS
+// ═══════════════════════════════════════════
+function toggleRit(cat,itemId){
+  if(!S.rDone[cat]) S.rDone[cat]=[]
+  const idx=S.rDone[cat].indexOf(itemId)
+  if(idx===-1){
+    S.rDone[cat].push(itemId)
+    const item=S.routines[cat]&&S.routines[cat].find(x=>x.id===itemId)
+    if(item) addToLog({text:item.text,ico:RCATS[cat]?.ico||"✓",cat:RCATS[cat]?.lbl||cat,type:"routine"})
+  } else {
+    S.rDone[cat].splice(idx,1)
+  }
+  save(); rerender()
+}
+function deleteRoutineItem(cat,id){
+  S.routines[cat]=(S.routines[cat]||[]).filter(x=>x.id!==id)
+  S.rDone[cat]=(S.rDone[cat]||[]).filter(x=>x!==id)
+  save(); rerender()
+}
+function addRoutineItem(cat){
+  const text=(document.getElementById("new-rit-inp")||{value:S.newRText}).value.trim()
+  const time=(document.getElementById("new-rit-time")||{value:S.newRTime}).value||"flexibel"
+  if(!text) return
+  const id=`${cat}_${Date.now()}`
+  if(!S.routines[cat]) S.routines[cat]=[]
+  S.routines[cat].push({id,text,timeTag:time})
+  S.newRText=""; S.newRTime="flexibel"
+  save(); rerender()
+}
+function cycleTimeTag(cat,id){
+  const items=S.routines[cat]||[]
+  const item=items.find(x=>x.id===id)
+  if(!item) return
+  const i=TT_KEYS.indexOf(item.timeTag)
+  item.timeTag=TT_KEYS[(i+1)%TT_KEYS.length]
+  save(); rerender()
+}
+function updateRitText(cat,id,val){
+  const item=(S.routines[cat]||[]).find(x=>x.id===id)
+  if(item) item.text=val
+}
+function saveRitText(cat,id){
+  save(); rerender()
+}
+function toggleEditMode(){
+  S.editMode=!S.editMode
+  save(); rerender()
+}
+function doneAllRit(cat){
+  S.rDone[cat]=(S.routines[cat]||[]).map(x=>x.id)
+  save(); rerender()
+}
+function resetRit(cat){
+  S.rDone[cat]=[]
+  save(); rerender()
+}
+
+// ═══════════════════════════════════════════
+// BELIEF FUNCTIONS
+// ═══════════════════════════════════════════
+function addBelief(){
+  const v=(document.getElementById("new-belief-inp")||{value:S.newBeliefTxt}).value.trim()
+  if(!v) return
+  if(!S.beliefs[S.bTab]) S.beliefs[S.bTab]=[]
+  S.beliefs[S.bTab].unshift(v)
+  S.newBeliefTxt=""
+  save(); rerender()
+}
+function deleteBelief(cat,i){
+  if(!confirm("Diesen Glaubenssatz löschen?")) return
+  S.beliefs[cat].splice(i,1)
+  save(); rerender()
+}
+function setBeliefTab(cat){
+  S.bTab=cat; rerender()
+}
+function saveAiBelief(){
+  if(!S.aiBelief.text) return
+  const cat=S.aiBelief.cat
+  if(!S.beliefs[cat]) S.beliefs[cat]=[]
+  S.beliefs[cat].unshift(S.aiBelief.text)
+  S.bTab=cat
+  S.aiBelief.text=""
+  save(); rerender()
+}
+function setAiBeliefCat(cat){
+  S.aiBelief.cat=cat; rerender()
+}
+
+// ═══════════════════════════════════════════
+// PRIORITIES
+// ═══════════════════════════════════════════
+function togglePrio(i){
+  S.priorities[i].done=!S.priorities[i].done
+  save(); rerender()
+}
+function updatePrioText(i,val){
+  S.priorities[i].t=val; save()
+}
+
+// ═══════════════════════════════════════════
+// SETTINGS
+// ═══════════════════════════════════════════
+function openSettings(){
+  document.getElementById("settings-overlay").style.display="flex"
+  const inp=document.getElementById("api-key-inp")
+  if(inp) inp.value=S.apiKey||""
+}
+function closeSettings(){
+  document.getElementById("settings-overlay").style.display="none"
+}
+function saveApiKey(){
+  const v=(document.getElementById("api-key-inp")||{value:""}).value.trim()
+  S.apiKey=v; save()
+  const r=document.getElementById("api-test-result")
+  if(r) r.innerHTML=`<span style="color:var(--ok)">✓ API-Key gespeichert.</span>`
+}
+async function testApiKey(){
+  const r=document.getElementById("api-test-result")
+  if(r) r.innerHTML=`<span class="spinner"></span> Teste Verbindung…`
+  try{
+    const v=(document.getElementById("api-key-inp")||{value:S.apiKey}).value.trim()
+    const txt=await callClaude("Antworte nur mit: OK",undefined,v)
+    if(r) r.innerHTML=`<span style="color:var(--ok)">✓ Verbindung erfolgreich!</span>`
+  }catch(e){
+    if(r) r.innerHTML=`<span style="color:#D05050">✗ Fehler: ${esc(e.message)}</span>`
+  }
+}
+
+// ═══════════════════════════════════════════
+// AI FUNCTIONS
+// ═══════════════════════════════════════════
+async function callClaude(userPrompt, system, apiKey){
+  const key = apiKey||S.apiKey
+  if(!key) throw new Error("Kein API-Key. Bitte in Einstellungen (⚙️) eintragen.")
+  const body={
+    model:"claude-sonnet-4-20250514",
+    max_tokens:1000,
+    messages:[{role:"user",content:userPrompt}],
+  }
+  if(system) body.system=system
+  const resp=await fetch("https://api.anthropic.com/v1/messages",{
+    method:"POST",
+    headers:{"Content-Type":"application/json","x-api-key":key,"anthropic-version":"2023-06-01"},
+    body:JSON.stringify(body)
+  })
+  const data=await resp.json()
+  if(data.error) throw new Error(data.error.message)
+  return data.content?.filter(b=>b.type==="text").map(b=>b.text).join("")||""
+}
+
+async function genAffirm(){
+  S.aiAffirm={text:"",loading:true,error:""}
+  rerender()
+  try{
+    const cat=CATS[S.bTab]||CATS.success
+    const mo=moodObj()
+    const txt=await callClaude(
+      `Stimmung: ${S.mood||3}/5 (${mo?.lb||"neutral"}). Uhrzeit: ${getHour()}:00. Kategorie: ${cat.lbl}.\n\nErstelle GENAU EINEN tiefen persönlichen Glaubenssatz auf Deutsch in Ich-Form. Nur den Satz, kein Kommentar, keine Anführungszeichen.`,
+      "Du bist ein einfühlsamer persönlicher Coach. Präzise, authentisch, tiefgehend."
+    )
+    S.aiAffirm={text:txt.trim(),loading:false,error:""}
+  }catch(e){
+    S.aiAffirm={text:"",loading:false,error:e.message}
+  }
+  save(); rerender()
+}
+
+async function genCoach(){
+  const mo=moodObj()
+  S.aiCoach={text:"",loading:true,error:""}
+  rerender()
+  try{
+    const txt=await callClaude(
+      `Meine heutige Reflexion:\n\nMorgen – Intention: ${S.morRefl.intention||"–"} | Dankbarkeit: ${S.morRefl.gratitude||"–"}\nAbend – Stolz: ${S.eveRefl.proud||"–"} | Gelernt: ${S.eveRefl.learned||"–"} | Dankbar: ${S.eveRefl.gratitude||"–"}\n\nStimmung: ${S.mood||3}/5 (${mo?.lb||"neutral"})\nRoutinen: ${routinePct()}% | Murmel-Momente: ${S.marbles.length}\n\nGib Coaching-Feedback in 3–4 Sätzen auf Deutsch:\n1. Würdige, was heute gut war\n2. Erkenne eine konkrete Stärke\n3. Gib EINEN fokussierten Impuls für morgen\n\nDirekt, warm, "du", keine Floskeln.`,
+      "Du bist ein einfühlsamer persönlicher Coach."
+    )
+    S.aiCoach={text:txt.trim(),loading:false,error:""}
+  }catch(e){
+    S.aiCoach={text:"",loading:false,error:e.message}
+  }
+  save(); rerender()
+}
+
+async function genWeekAnalysis(){
+  S.aiWeek={text:"",loading:true,error:""}
+  rerender()
+  try{
+    const mo=moodObj()
+    const txt=await callClaude(
+      `Mein heutiger Tag:\n- Routinen: ${routinePct()}%\n- Murmel-Momente (Selbstliebe): ${S.marbles.length}\n- Stimmung: ${S.mood||3}/5 (${mo?.lb||"?"})\n- Aktivitäten: ${S.actLog.length} geloggt\n\nGib in 3–4 Sätzen auf Deutsch:\n1. Ein Muster das du erkennst\n2. Eine Stärke die sichtbar wird\n3. Impuls für die nächsten 2–3 Tage\n\nPräzise, warm, "du".`,
+      "Du bist ein intelligenter Lebensberater."
+    )
+    S.aiWeek={text:txt.trim(),loading:false,error:""}
+  }catch(e){
+    S.aiWeek={text:"",loading:false,error:e.message}
+  }
+  save(); rerender()
+}
+
+async function genBeliefAI(){
+  S.aiBelief={...S.aiBelief,text:"",loading:true,error:""}
+  rerender()
+  try{
+    const cat=CATS[S.aiBelief.cat]||CATS.selfworth
+    const mo=moodObj()
+    const txt=await callClaude(
+      `Kategorie: ${cat.lbl}. Stimmung: ${S.mood||3}/5 (${mo?.lb||"neutral"}). ${getHour()}:00 Uhr.\n\nErstelle EINEN persönlichen, tiefen Glaubenssatz. Ich-Form, Deutsch. Nur den Satz – kein Kommentar, keine Anführungszeichen.`,
+      "Du bist ein einfühlsamer Coach. Erstelle authentische, tiefgehende persönliche Glaubenssätze."
+    )
+    S.aiBelief={...S.aiBelief,text:txt.trim(),loading:false,error:""}
+  }catch(e){
+    S.aiBelief={...S.aiBelief,text:"",loading:false,error:e.message}
+  }
+  save(); rerender()
+}
+
+// ═══════════════════════════════════════════
+// AI BOX HTML
+// ═══════════════════════════════════════════
+function aiBoxHtml(title,state){
+  if(!state.loading&&!state.text&&!state.error) return ""
+  return `<div class="ai-box">
+    <div class="ai-box-title">✨ ${esc(title)}</div>
+    ${state.loading?`<div class="loading-row"><span class="spinner"></span>Claude denkt nach…</div>`:""}
+    ${state.error&&!state.loading?`<p class="ai-error">${esc(state.error)}</p>`:""}
+    ${state.text&&!state.loading?`<p class="ai-box-text">${esc(state.text)}</p>`:""}
+  </div>`
+}
+
+// ═══════════════════════════════════════════
+// SECTION: DASHBOARD
+// ═══════════════════════════════════════════
+function renderDashboard(){
+  const h=getHour()
+  const greeting=h<5?"Gute Nacht 🌙":h<12?"Guten Morgen ☀️":h<17?"Guten Nachmittag 🌤️":h<21?"Guten Abend 🌆":"Gute Nacht 🌙"
+  const guide=getTimeGuide()
+  const mo=moodObj()
+  const pct=routinePct()
+  const donePrio=S.priorities.filter(p=>p.done).length
+
+  // Mood
+  const moodBtns=MOODS.map(m=>`
+    <button class="mood-btn${S.mood===m.v?" sel":""}" onclick="setMood(${m.v})">
+      <span class="mood-em">${m.em}</span>
+      <span class="mood-lb">${m.lb}</span>
+    </button>`).join("")
+
+  // Affirmation
+  const affirmText = S.aiAffirm.text||S.featBelief||DEF_BELIEFS.success[0]
+  const affirmHtml = S.aiAffirm.loading
+    ? `<div class="loading-row mt12"><span class="spinner"></span><span class="fs13">KI denkt…</span></div>`
+    : `<p class="mt12" style="font-family:'Fraunces',serif;font-size:17px;font-style:italic;font-weight:400;line-height:1.65;color:var(--txt);min-height:70px">${esc(affirmText)}</p>`
+
+  // Routine chips
+  const chips=Object.entries(RCATS).map(([k,rc])=>{
+    const d=(S.rDone[k]||[]).length, t=(S.routines[k]||[]).length
+    return `<span onclick="navigate('routines');S.rTab='${k}';rerender()" style="display:inline-flex;align-items:center;gap:5px;padding:4px 11px;border-radius:20px;font-size:12px;font-weight:600;background:var(--sur2);border:1px solid ${d===t&&t>0?"var(--okB)":"var(--brd)"};cursor:pointer;color:${d===t&&t>0?"var(--ok)":d>0?"var(--acc)":"var(--txt3)"}">
+      ${rc.ico} ${d}/${t}
+    </span>`}).join("")
+
+  return `
+    <div class="flex-b mb12" style="margin-top:4px">
+      <div>
+        <h1 class="page-title">${greeting}</h1>
+        <p class="page-sub">${getDateLong()}</p>
+      </div>
+    </div>
+
+    <div class="card card-accent mb14" style="cursor:pointer" onclick="navigate('${guide.nav}')">
+      <div class="flex-b">
+        <div class="flex-c gap12">
+          <span style="font-size:28px;line-height:1">${guide.em}</span>
+          <div>
+            <div style="font-size:15px;font-weight:700;color:var(--txt)">${guide.label}</div>
+            <div class="fs13 c-muted mt8" style="margin-top:2px">${guide.desc}</div>
+          </div>
+        </div>
+        <span class="badge badge-acc">Jetzt →</span>
+      </div>
+    </div>
+
+    <div class="card mb14">
+      <div class="flex-b mb8">
+        <span class="lbl">Stimmung</span>
+        <span class="fs11 c-faint">${getTime()} Uhr</span>
+      </div>
+      <div class="mood-row">${moodBtns}</div>
+    </div>
+
+    ${renderMarbles()}
+
+    <div class="g2 mb14" style="margin-top:14px">
+      <div class="card card-accent">
+        <span class="lbl">Heutiger Glaubenssatz</span>
+        ${affirmHtml}
+        ${S.aiAffirm.error?`<p class="ai-error fs12 mt8">${esc(S.aiAffirm.error)}</p>`:""}
+        <div class="flex-b mt12">
+          <span class="badge badge-acc">${CATS[S.bTab]?.lbl||"Erfolg"}</span>
+          <button class="btn btn-ghost btn-sm" onclick="genAffirm()" ${S.aiAffirm.loading?"disabled":""}>✨ KI-Satz</button>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="flex-b mb12">
+          <span class="lbl">Top 3 Prioritäten</span>
+          <span class="fs11 c-faint">${donePrio}/3</span>
+        </div>
+        ${S.priorities.map((p,i)=>`
+          <div onclick="togglePrio(${i})" style="display:flex;align-items:center;gap:10px;padding:9px 11px;border-radius:var(--rsm);background:var(--sur2);border:1px solid var(--brd);margin-bottom:${i<2?8:0}px;cursor:pointer;opacity:${p.done?.5:1}">
+            <div class="cc${p.done?" on":""}"></div>
+            <span style="font-size:13px;font-weight:500;flex:1;color:${p.done?"var(--txt3)":"var(--txt)"};text-decoration:${p.done?"line-through":"none"}">${esc(p.t)}</span>
+          </div>`).join("")}
+      </div>
+    </div>
+
+    <div class="card mb14">
+      <div class="flex-b">
+        <span class="lbl">Routinen heute</span>
+        <span class="serif c-acc" style="font-size:22px;font-weight:500">${pct}%</span>
+      </div>
+      <div class="bar-track mt8 mb12">
+        <div class="bar-fill${pct>=80?" ok":""}" style="width:${pct}%"></div>
+      </div>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">${chips}</div>
+    </div>`
+}
+
+function setMood(v){ S.mood=v; save(); rerender() }
+
+// ═══════════════════════════════════════════
+// SECTION: HEUTE (Day Log)
+// ═══════════════════════════════════════════
+function renderToday(){
+  const routinesDone=S.actLog.filter(e=>e.type==="routine").length
+  const marblesDone=S.actLog.filter(e=>e.type==="marble").length
+  const customDone=S.actLog.filter(e=>e.type==="custom").length
+
+  const logHtml=S.actLog.length===0
+    ? `<div class="text-c" style="padding:28px 16px;color:var(--txt3);font-size:14px">Noch keine Aktivitäten. Routinen abhaken oder manuell eintragen!</div>`
+    : S.actLog.map(e=>`
+        <div class="log-entry">
+          <span class="log-ico">${e.ico}</span>
+          <div class="log-main">
+            <div class="log-text">${esc(e.text)}</div>
+            <div class="log-meta">${esc(e.cat)} · ${e.at} Uhr</div>
+          </div>
+          ${e.type==="marble"?`<span class="badge" style="background:rgba(194,125,53,.1);color:#C27D35;font-size:10px">🤍</span>`:""}
+        </div>`).join("")
+
+  // Marble list with descriptions
+  const marbleDetails=S.marbles.length>0?`
+    <div class="card mb14">
+      <span class="lbl">Murmel-Momente (${S.marbles.length})</span>
+      <div class="mt12">
+        ${S.marbles.map(m=>`
+          <div style="display:flex;align-items:baseline;gap:10px;padding:7px 0;border-bottom:1px solid var(--brd)">
+            <span style="font-size:16px;flex-shrink:0">🤍</span>
+            <div>
+              <span class="fs13 fw6" style="color:var(--txt)">${m.desc?esc(m.desc):"<em style='color:var(--txt3)'>Kein Text</em>"}</span>
+              <span class="fs11 c-faint" style="margin-left:8px">${m.at} Uhr</span>
+            </div>
+          </div>`).join("")}
+      </div>
+    </div>`:"";
+
+  return `
+    <div class="flex-b mb14">
+      <div>
+        <h2 class="page-title">Heute</h2>
+        <p class="page-sub">Was du heute getan und gelebt hast</p>
+      </div>
+    </div>
+
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+      <span class="badge badge-acc">${routinesDone} Routine${routinesDone!==1?"n":""}</span>
+      <span class="badge" style="background:rgba(194,125,53,.1);color:#C27D35">${marblesDone} Murmel-Moment${marblesDone!==1?"e":""}</span>
+      <span class="badge" style="background:var(--sur2);color:var(--txt2)">${customDone} Eigene${customDone!==1?"s":""}</span>
+    </div>
+
+    <div class="card card-ok mb14">
+      <div class="flex-b mb12">
+        <span class="lbl">Heutiger Erfolg 🌟</span>
+      </div>
+      <textarea class="inp ta" rows="3" placeholder="Was habe ich heute geschafft, worauf ich stolz bin?" oninput="S.win=this.value">${esc(S.win)}</textarea>
+      <p class="fs11 c-faint mt8">Auch kleine Erfolge zählen 💚</p>
+    </div>
+
+    ${marbleDetails}
+
+    <div class="card">
+      <div class="flex-b mb14">
+        <span class="lbl">Aktivitäten-Log</span>
+        <span class="fs11 c-faint">${S.actLog.length} Einträge</span>
+      </div>
+      ${logHtml}
+      <div style="display:flex;gap:8px;margin-top:14px;flex-wrap:wrap">
+        <input type="text" id="new-act-inp" class="inp" placeholder="Eigene Aktivität hinzufügen…"
+          style="flex:1;min-width:160px" value="${esc(S.newActText)}"
+          onkeydown="if(event.key==='Enter')addCustomActivity()"
+          oninput="S.newActText=this.value">
+        <button class="btn btn-primary btn-sm" onclick="addCustomActivity()">+ Hinzufügen</button>
+      </div>
+    </div>`
+}
+
+// ═══════════════════════════════════════════
+// SECTION: ROUTINEN
+// ═══════════════════════════════════════════
+function renderRoutines(){
+  const items=S.routines[S.rTab]||[]
+  const doneIds=S.rDone[S.rTab]||[]
+  const done=doneIds.length
+  const total=items.length
+  const pct=total>0?Math.round(done/total*100):0
+  const full=done===total&&total>0
+  const today=new Date().getDay(), ti=today===0?6:today-1
+
+  const tabsHtml=Object.entries(RCATS).map(([k,rc])=>{
+    const d=(S.rDone[k]||[]).length,t=(S.routines[k]||[]).length
+    return `<button class="tab-btn${S.rTab===k?" active":""}" onclick="S.rTab='${k}';rerender()">${rc.ico} ${rc.lbl} <span style="opacity:.6;font-weight:400">${d}/${t}</span></button>`
+  }).join("")
+
+  let itemsHtml=""
+  if(S.editMode){
+    itemsHtml=items.map(item=>{
+      const tt=TIME_TAGS[item.timeTag]||TIME_TAGS.flexibel
+      return `
+        <div style="display:flex;align-items:center;gap:8px;padding:8px 0;border-bottom:1px solid var(--brd)">
+          <input class="inp" style="flex:1;padding:7px 10px;font-size:13px" value="${esc(item.text)}"
+            oninput="updateRitText('${S.rTab}','${item.id}',this.value)"
+            onblur="saveRitText('${S.rTab}','${item.id}')">
+          <button onclick="cycleTimeTag('${S.rTab}','${item.id}')"
+            style="padding:5px 10px;border-radius:20px;border:none;cursor:pointer;font-size:11px;font-weight:700;background:${tt.bg};color:${tt.col};font-family:'Plus Jakarta Sans',sans-serif;flex-shrink:0">
+            ${tt.lbl}
+          </button>
+          <button class="btn btn-danger btn-xs" onclick="deleteRoutineItem('${S.rTab}','${item.id}')">✕</button>
+        </div>`
+    }).join("")
+    itemsHtml+=`
+      <div style="margin-top:14px;padding-top:14px;border-top:1px solid var(--brd)">
+        <div class="fs12 fw6 c-muted mb8">Neue Routine hinzufügen:</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap">
+          <input id="new-rit-inp" class="inp" style="flex:1;min-width:150px;padding:9px 12px;font-size:13px"
+            placeholder="Neue Routine…" value="${esc(S.newRText)}"
+            oninput="S.newRText=this.value"
+            onkeydown="if(event.key==='Enter')addRoutineItem('${S.rTab}')">
+          <select id="new-rit-time" class="inp sel" style="width:110px;padding:9px 10px;font-size:13px">
+            ${TT_KEYS.map(k=>`<option value="${k}"${S.newRTime===k?" selected":""}>${TIME_TAGS[k].lbl}</option>`).join("")}
+          </select>
+          <button class="btn btn-primary btn-sm" onclick="addRoutineItem('${S.rTab}')">+ Hinzufügen</button>
+        </div>
+      </div>`
+  } else {
+    itemsHtml=items.map(item=>{
+      const on=doneIds.includes(item.id)
+      const tt=TIME_TAGS[item.timeTag]||TIME_TAGS.flexibel
+      return `
+        <div class="rit-item${on?" done":""}" onclick="toggleRit('${S.rTab}','${item.id}')">
+          <div class="cc${on?" on":""}"></div>
+          <span class="rit-text">${esc(item.text)}</span>
+          <span class="time-tag" style="background:${tt.bg};color:${tt.col}">${tt.lbl}</span>
+          <span class="rit-status" style="background:${on?"var(--okL)":"var(--sur2)"};color:${on?"var(--ok)":"var(--txt3)"}">${on?"✓":"—"}</span>
+        </div>`
+    }).join("")
+  }
+
+  const streakHtml=["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>{
+    const cls=i<ti?"done":i===ti?"today":"future"
+    return `<div class="streak-day">
+      <div class="streak-dot${cls===" done"||cls==="done"?" done":cls==="today"?" today":""}"></div>
+      <span class="streak-lbl${cls==="today"?" today":""}">${d}</span>
+    </div>`}).join("")
+
+  return `
+    <div class="flex-b mb14" style="margin-top:4px;align-items:flex-start">
+      <div>
+        <h2 class="page-title">Routinen</h2>
+        <p class="page-sub">Kleine Taten, die Großes bewirken</p>
+      </div>
+      <button class="btn btn-sm ${S.editMode?"btn-success":"btn-secondary"}" onclick="toggleEditMode()" style="margin-top:6px">
+        ${S.editMode?"✓ Fertig":"✏️ Bearbeiten"}
+      </button>
+    </div>
+
+    <div class="tabs">${tabsHtml}</div>
+
+    <div class="card${full?" card-ok":""}" style="${full?"border-color:var(--okB)":""}">
+      <div class="flex-b mb12">
+        <div class="flex-c gap12">
+          <span style="font-size:26px">${RCATS[S.rTab]?.ico}</span>
+          <span style="font-size:16px;font-weight:600;color:var(--txt)">${RCATS[S.rTab]?.lbl}</span>
+        </div>
+        <span class="badge ${full?"badge-ok":"badge-acc"}">${pct}%</span>
+      </div>
+      <div class="bar-track mb14">
+        <div class="bar-fill${full?" ok":""}" style="width:${pct}%"></div>
+      </div>
+      <p class="fs12 c-muted mb14">${full?"🎉 Komplett erledigt – richtig gut gemacht!":done>0?`${done} von ${total} erledigt`:"Noch nicht gestartet – du schaffst das!"}</p>
+      ${itemsHtml}
+      ${!S.editMode?`<div class="flex-b mt16">
+        <button class="btn btn-ghost btn-sm" onclick="resetRit('${S.rTab}')">↺ Zurücksetzen</button>
+        <button class="btn btn-secondary btn-sm" onclick="doneAllRit('${S.rTab}')">Alle erledigen</button>
+      </div>`:""}
+    </div>
+
+    <div class="card mt14">
+      <div class="flex-b mb12">
+        <span class="lbl">Diese Woche</span>
+        <span class="fs11 c-faint">Fortschritt zählt, nicht Perfektion</span>
+      </div>
+      <div class="streak-row">${streakHtml}</div>
+    </div>`
+}
+
+// ═══════════════════════════════════════════
+// SECTION: GLAUBENSSÄTZE
+// ═══════════════════════════════════════════
+function renderBeliefs(){
+  const items=S.beliefs[S.bTab]||[]
+  const catMeta=CATS[S.bTab]||CATS.selfworth
+  const affirmText=S.aiAffirm.text||S.featBelief||DEF_BELIEFS.success[0]
+
+  const tabsHtml=Object.entries(CATS).map(([k,cat])=>`
+    <button class="tab-btn${S.bTab===k?" active":""}" onclick="setBeliefTab('${k}')"
+      style="${S.bTab===k?`color:${cat.col}`:""}">
+      ${cat.lbl}
+    </button>`).join("")
+
+  const catTabsBelief=Object.entries(CATS).map(([k,cat])=>`
+    <button onclick="setAiBeliefCat('${k}')" style="
+      padding:6px 13px;border-radius:20px;cursor:pointer;
+      background:${S.aiBelief.cat===k?cat.bg:"transparent"};
+      color:${S.aiBelief.cat===k?cat.col:"var(--txt3)"};
+      border:1px solid ${S.aiBelief.cat===k?cat.col+"55":"var(--brd)"};
+      font-size:12px;font-weight:600;font-family:'Plus Jakarta Sans',sans-serif;transition:all .18s">
+      ${cat.lbl}
+    </button>`).join("")
+
+  return `
+    <div class="mb14" style="margin-top:4px">
+      <h2 class="page-title">Glaubenssätze</h2>
+      <p class="page-sub">Worte, die dich täglich stärken</p>
+    </div>
+
+    <div class="card card-accent text-c mb14" style="padding:26px 20px">
+      <span class="lbl">Heutiger Satz</span>
+      ${S.aiAffirm.loading
+        ?`<div class="loading-row mt12" style="justify-content:center"><span class="spinner"></span><span class="fs13">KI generiert…</span></div>`
+        :`<p class="mt12 mb14" style="font-family:'Fraunces',serif;font-size:20px;font-style:italic;font-weight:400;line-height:1.65;color:var(--txt)">${esc(affirmText)}</p>`}
+      <div style="display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px">
+        <span class="badge badge-acc">${CATS[S.bTab]?.lbl}</span>
+        <button class="btn btn-ghost btn-sm" onclick="genAffirm()" ${S.aiAffirm.loading?"disabled":""}>✨ KI-Satz</button>
+      </div>
+      ${S.aiAffirm.error?`<p class="ai-error fs12 mt8">${esc(S.aiAffirm.error)}</p>`:""}
+    </div>
+
+    <div class="card mb14">
+      <div class="flex-c gap12 mb12 lbl">✨ KI-Glaubenssatz erstellen</div>
+      <div style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:12px">${catTabsBelief}</div>
+      <button class="btn btn-ai btn-sm" onclick="genBeliefAI()" ${S.aiBelief.loading?"disabled":""}>
+        ${S.aiBelief.loading?`<span class="spinner" style="border-color:rgba(255,255,255,.4);border-top-color:transparent"></span> Generiere…`:"✨ Satz generieren"}
+      </button>
+      ${S.aiBelief.loading||S.aiBelief.text||S.aiBelief.error?`
+        <div class="card card-accent mt12">
+          <div class="ai-box-title">✨ KI-Ergebnis</div>
+          ${S.aiBelief.loading?`<div class="loading-row"><span class="spinner"></span>Claude denkt…</div>`:""}
+          ${S.aiBelief.error?`<p class="ai-error">${esc(S.aiBelief.error)}</p>`:""}
+          ${S.aiBelief.text&&!S.aiBelief.loading?`
+            <p style="font-family:'Fraunces',serif;font-size:16px;font-style:italic;line-height:1.7;color:var(--txt);margin:0 0 12px">${esc(S.aiBelief.text)}</p>
+            <div class="flex-c gap8">
+              <button class="btn btn-success btn-sm" onclick="saveAiBelief()">✓ Speichern</button>
+              <button class="btn btn-ghost btn-sm" onclick="S.aiBelief.text='';S.aiBelief.error='';rerender()">✕ Verwerfen</button>
+            </div>`:""}
+        </div>`:""}
+    </div>
+
+    <div class="tabs">${tabsHtml}</div>
+
+    ${items.length>0?items.map((txt,i)=>`
+      <div class="belief-item">
+        <span style="font-size:15px;color:${catMeta.col};flex-shrink:0">❝</span>
+        <span class="belief-text">${esc(txt)}</span>
+        <button class="belief-del" onclick="deleteBelief('${S.bTab}',${i})">✕</button>
+      </div>`).join("")
+    :`<div class="text-c" style="padding:28px 16px;color:var(--txt3);font-size:14px">Noch keine Sätze – erstelle deinen ersten mit KI! ✨</div>`}
+
+    <div class="card mt16">
+      <span class="lbl mb12" style="display:block">Manuell hinzufügen</span>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <input id="new-belief-inp" class="inp" style="flex:1;min-width:180px"
+          placeholder="Eigener Glaubenssatz…"
+          value="${esc(S.newBeliefTxt)}"
+          oninput="S.newBeliefTxt=this.value"
+          onkeydown="if(event.key==='Enter')addBelief()">
+        <button class="btn btn-primary btn-sm" onclick="addBelief()">+ Hinzufügen</button>
+      </div>
+    </div>`
+}
+
+// ═══════════════════════════════════════════
+// SECTION: REFLEXION
+// ═══════════════════════════════════════════
+function renderReflection(){
+  const h=getHour()
+  const isMorn=h>=5&&h<12
+  const isEve=h>=17
+  const hasMor=Object.values(S.morRefl).some(v=>v.trim())
+  const hasEve=Object.values(S.eveRefl).some(v=>v.trim())
+  const mo=moodObj()
+
+  function rfld(id,lbl,em,val,statePath,ph,rows=3){
+    return `
+      <div class="mb12">
+        <div class="refl-label"><span class="refl-em">${em}</span>${lbl}</div>
+        <textarea class="inp ta" rows="${rows}" placeholder="${esc(ph)}"
+          oninput="${statePath}=this.value">${esc(val)}</textarea>
+      </div>`
+  }
+
+  // Log preview for evening
+  const logPreview=S.actLog.length>0?`
+    <div class="log-preview mb14">
+      <div class="lbl mb8">Was du heute getan hast:</div>
+      ${S.actLog.slice(0,4).map(e=>`
+        <div class="fs13 c-muted mb8" style="display:flex;align-items:center;gap:7px">
+          <span>${e.ico}</span><span>${esc(e.text)}</span>
+        </div>`).join("")}
+      ${S.actLog.length>4?`<div class="fs12 c-faint">+${S.actLog.length-4} weitere → im "Heute"-Bereich</div>`:""}
+    </div>`:"";
+
+  // Week bars
+  const today=new Date().getDay(), ti=today===0?6:today-1
+  const wd=[...S.weekHistory]; wd[ti]=routinePct()
+  const barsHtml=["Mo","Di","Mi","Do","Fr","Sa","So"].map((d,i)=>{
+    const pct=wd[i]||0, isT=i===ti
+    const col=pct>=80?"var(--ok)":pct>=50?"var(--acc)":pct>0?"#D97706":"var(--sur3)"
+    const h=Math.max(8,Math.round(pct/100*48))
+    return `<div style="display:flex;flex-direction:column;align-items:center;gap:5px">
+      <div style="width:100%;height:${h}px;background:${col};border-radius:4px 4px 2px 2px;transition:height .5s"></div>
+      <span style="font-size:10px;font-weight:${isT?700:500};color:${isT?"var(--acc)":"var(--txt3)"}">${d}</span>
+      ${pct>0?`<span style="font-size:9px;color:var(--txt3)">${pct}%</span>`:""}
+    </div>`}).join("")
+
+  return `
+    <div class="mb14" style="margin-top:4px">
+      <h2 class="page-title">Tagesritual</h2>
+      <p class="page-sub">Morgen ankommen – Abend loslassen</p>
+    </div>
+
+    <div class="ritual-card morning${isMorn?" active":""}">
+      <div class="ritual-header">
+        <div class="ritual-info">
+          <span class="ritual-em">🌅</span>
+          <div>
+            <div class="ritual-title">Morgenritual</div>
+            <div class="ritual-time">5 Minuten · 5–12 Uhr</div>
+          </div>
+        </div>
+        ${isMorn?`<span class="now-badge">● Jetzt</span>`:hasMor?`<span class="done-badge">✓ Gemacht</span>`:""}
+      </div>
+      ${rfld("mi","Meine Intention für heute","🎯",S.morRefl.intention,"S.morRefl.intention","Wofür möchte ich heute da sein? Was ist mein Fokus?",2)}
+      ${rfld("mg","Dankbarkeit – 3 Dinge","🙏",S.morRefl.gratitude,"S.morRefl.gratitude","Drei Dinge, für die ich heute Morgen dankbar bin…")}
+      ${rfld("me","Mein Energie-Wort heute","⚡",S.morRefl.energy,"S.morRefl.energy","Ein Wort für meinen Tag (z.B. Klarheit, Mut, Leichtigkeit)",1)}
+    </div>
+
+    <div class="ritual-card evening${isEve?" active":""}">
+      <div class="ritual-header">
+        <div class="ritual-info">
+          <span class="ritual-em">🌙</span>
+          <div>
+            <div class="ritual-title">Abendritual</div>
+            <div class="ritual-time">10 Minuten · ab 17 Uhr</div>
+          </div>
+        </div>
+        ${isEve?`<span class="now-badge">● Jetzt</span>`:hasEve?`<span class="done-badge">✓ Gemacht</span>`:""}
+      </div>
+      ${logPreview}
+      ${rfld("ep","Worauf bin ich stolz?","💪",S.eveRefl.proud,"S.eveRefl.proud","Was habe ich heute gut gemacht – auch Kleines zählt.")}
+      ${rfld("el","Was habe ich gelernt?","💡",S.eveRefl.learned,"S.eveRefl.learned","Eine Erkenntnis oder neue Einsicht von heute.")}
+      ${rfld("eg","Dankbarkeit – Abend","🙏",S.eveRefl.gratitude,"S.eveRefl.gratitude","Drei Dinge, die heute gut waren oder mich berührt haben.")}
+      ${rfld("et","Impuls für morgen","🌅",S.eveRefl.tomorrow,"S.eveRefl.tomorrow","Was nehme ich mir für morgen vor?",2)}
+
+      <div class="divider"></div>
+      <div class="flex-b gap12">
+        <div style="flex:1">
+          <div class="fs13 fw6" style="margin-bottom:3px">✨ KI-Coach Feedback</div>
+          <div class="fs12 c-muted">${hasMor||hasEve?"Claude analysiert deine Reflexion und gibt persönliches Feedback.":"Fülle oben erst deine Reflexion aus."}</div>
+        </div>
+        <button class="btn btn-ai btn-sm" onclick="genCoach()" ${(!hasMor&&!hasEve)||S.aiCoach.loading?"disabled":""} style="opacity:${!hasMor&&!hasEve?.45:1};flex-shrink:0">
+          ${S.aiCoach.loading?`<span class="spinner" style="border-color:rgba(255,255,255,.4);border-top-color:transparent"></span> Analysiere…`:"✨ Feedback"}
+        </button>
+      </div>
+      ${aiBoxHtml("Coach-Feedback",S.aiCoach)}
+    </div>
+
+    ${S.win.trim()?`
+      <div class="card card-ok text-c mb14" style="padding:24px 20px;animation:pop .4s cubic-bezier(.34,1.56,.64,1)">
+        <div style="font-size:40px;margin-bottom:10px">🌟</div>
+        <h3 class="serif mb8" style="font-size:18px;font-weight:500;color:var(--txt)">Heutiger Erfolg</h3>
+        <p class="fs13 c-muted" style="line-height:1.6">${esc(S.win)}</p>
+      </div>`:""}
+
+    <div class="card">
+      <div class="flex-b mb14">
+        <span class="lbl">Wochenverlauf</span>
+        <span class="fs11 c-faint">Routinen %</span>
+      </div>
+      <div style="display:grid;grid-template-columns:repeat(7,1fr);gap:8px;align-items:flex-end;margin-bottom:16px">
+        ${barsHtml}
+      </div>
+      <div class="divider"></div>
+      <div class="flex-b">
+        <div>
+          <div class="fs13 fw6">Heute: ${routinePct()}% Routinen</div>
+          <div class="fs11 c-faint">${mo?`Stimmung: ${mo.em} ${mo.lb}`:"Stimmung noch nicht erfasst"} · ${S.marbles.length} Murmel-Moment${S.marbles.length!==1?"e":""}</div>
+        </div>
+        <button class="btn btn-secondary btn-sm" onclick="genWeekAnalysis()" ${S.aiWeek.loading?"disabled":""}>
+          ${S.aiWeek.loading?`<span class="spinner"></span> …`:"✨ KI-Analyse"}
+        </button>
+      </div>
+      ${aiBoxHtml("KI-Analyse",S.aiWeek)}
+    </div>`
+}
+
+// ═══════════════════════════════════════════
+// INIT
+// ═══════════════════════════════════════════
+function init(){
+  load()
+  if(!S.routines) S.routines=makeDefRoutines()
+  if(!S.beliefs)  S.beliefs=JSON.parse(JSON.stringify(DEF_BELIEFS))
+  if(!S.featBelief||!S.featBelief.length){
+    const cats=Object.keys(DEF_BELIEFS)
+    const cat=cats[Math.floor(Math.random()*cats.length)]
+    const items=DEF_BELIEFS[cat]
+    S.featBelief=items[Math.floor(Math.random()*items.length)]
+    S.featBeliefCat=cat
+  }
+  applyTheme()
+  buildNav()
+  rerender()
+  // Auto-save reflection textareas (prevent loss on navigate)
+  document.addEventListener("visibilitychange",()=>{ if(document.hidden) save() })
+}
+
+window.addEventListener("DOMContentLoaded",init)
+</script>
+</body>
+</html>
